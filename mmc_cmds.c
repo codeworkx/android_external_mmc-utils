@@ -221,7 +221,8 @@ static int get_wp_group_size_in_blks(__u8 *ext_csd, __u32 *size)
 {
 	__u8 ext_csd_rev = ext_csd[EXT_CSD_REV];
 
-	if ((ext_csd_rev < 5) || (ext_csd[EXT_CSD_ERASE_GROUP_DEF] == 0))
+	//if ((ext_csd_rev < 5) || (ext_csd[EXT_CSD_ERASE_GROUP_DEF] == 0))
+	if (ext_csd_rev < 5) // Lenovo compat
 		return 1;
 
 	*size = ext_csd[EXT_CSD_HC_ERASE_GRP_SIZE] *
@@ -344,8 +345,10 @@ int do_writeprotect_user_get(int nargs, char **argv)
 	}
 
 	ret = get_wp_group_size_in_blks(ext_csd, &wp_sizeblks);
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "Operation not supported for this device\n");
 		exit(1);
+	}
 	printf("Write Protect Group size in blocks/bytes: %d/%d\n",
 		wp_sizeblks, wp_sizeblks * 512);
 	dev_sizeblks = get_size_in_blks(fd);
@@ -469,6 +472,8 @@ int do_writeprotect_user_set(int nargs, char **argv)
 			exit(1);
 		}
 	}
+
+	fprintf(stderr, "Set user write protect. ret=%d\n", ret);
 	return ret;
 
 usage:
